@@ -10,10 +10,11 @@ import {
   MenuItem,
 } from "@mui/material";
 import GoogleIcon from '@mui/icons-material/Google';
+import IncognitoIcon from '@mui/icons-material/VisibilityOff';
 import { useState } from "react";
 
 function Auth() {
-  const { user, signIn, signOut: logOut } = useAuth();
+  const { user, signIn, signInAnonymously, signOut: logOut } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleSignOut = () => {
@@ -68,7 +69,7 @@ function Auth() {
                           sx={{ width: 56, height: 56, mr: 2 }}
                       />
                       <Box>
-                        <Typography variant="h6">{user.displayName}</Typography>
+                        <Typography variant="h6">{user.displayName || "Anonymous User"}</Typography>
                         <Typography variant="body2" color="text.secondary">
                           {user.email}
                         </Typography>
@@ -79,19 +80,37 @@ function Auth() {
             </Menu>
           </>
         ) : (
-          <Button
-              variant="contained"
-              startIcon={<GoogleIcon />}
-              onClick={signIn}
-              sx={{
-                '&:hover': {
-                  boxShadow: '0 0 10px 2px rgba(25, 118, 210, 0.5)',
-                  transition: 'box-shadow 0.3s ease-in-out',
-                },
-              }}
-          >
-              Sign in
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+                variant="contained"
+                startIcon={<GoogleIcon />}
+                onClick={signIn}
+                sx={{
+                  '&:hover': {
+                    boxShadow: '0 0 10px 2px rgba(25, 118, 210, 0.5)',
+                    transition: 'box-shadow 0.3s ease-in-out',
+                  },
+                }}
+            >
+                Sign in
+            </Button>
+            <Button
+                variant="contained"
+                startIcon={<IncognitoIcon />}
+                onClick={signInAnonymously}
+                sx={{
+                  backgroundColor: '#B0C4DE',
+                  color: 'black',
+                  '&:hover': {
+                    backgroundColor: '#A0B4CE',
+                    boxShadow: '0 0 10px 2px rgba(176, 196, 222, 0.5)',
+                    transition: 'box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out',
+                  },
+                }}
+            >
+                Anonymous
+            </Button>
+          </Box>
         )}
       </Box>
   );
