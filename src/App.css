@@ -1,8 +1,22 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  position: relative; /* This is crucial for positioning children */
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Re-adding overflow here to contain children */
+}
+
+.content-wrapper {
+    position: relative; /* To enable z-index */
+    z-index: 3; /* In front of Sun and Land */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .logo {
@@ -39,4 +53,30 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 2rem;
+  color: white;
+  box-sizing: border-box;
+  z-index: 4; /* Highest z-index to be on top of everything */
+}
+
+.login-prompt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-family: 'Roboto', sans-serif; /* Added Roboto font */
+}
+
+.login-prompt h2 {
+    font-size: 2rem; /* Adjusted for better visibility */
+    font-weight: 400; /* Regular weight for a clean look */
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
 }
