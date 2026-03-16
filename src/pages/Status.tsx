@@ -1,7 +1,8 @@
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../auth/useAuth";
-import { useFunctions, type StatusResponse } from "../functions/useFunctions.tsx"; 
+import { doc, onSnapshot } from "firebase/firestore";
+import { firestore } from "../firebase";
 import button from '../assets/button.svg';
 import './Status.css';
 
@@ -9,47 +10,60 @@ interface StatusProps {
   onStatusChange: (isGreen: boolean) => void;
 }
 
-const initialState: StatusResponse = { status: 'inactive', usersConnected: 0, users: [] };
+interface StatusData {
+    name: string;
+    desc: string;
+    status: string;
+    userCount: number;
+    activeUsers: Record<string, string>;
+}
+
+const initialState: StatusData = { name: '', desc: '', status: 'inactive', userCount: 0, activeUsers: {} };
 
 const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
   const { user } = useAuth();
-  const functions = useFunctions();
-  const [response, setResponse] = useState<StatusResponse>(initialState);
+  const [response, setResponse] = useState<StatusData>(initialState);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
     if (user) {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await functions.status2();
-        setResponse(data);
-      } catch (error) {
-        setError(error as Error);
-      } finally {
-        setLoading(false);
+      if (import.meta.env.DEV) {
+        console.log("Using mock status data in development.");
+        const mockData: StatusData[] = [
+          { name: "dev-server", desc: "Development server", status: "active", userCount: 2, activeUsers: { "uid-123": "Alice", "uid-456": "Bob" } },
+          { name: "dev-server", desc: "Development server", status: "active", userCount: 3, activeUsers: { "uid-123": "Alice", "uid-456": "Bob", "uid-789": "Charlie" } },
+          { name: "dev-server", desc: "Development server", status: "degraded", userCount: 1, activeUsers: { "uid-123": "Alice" } },
+          { name: "dev-server", desc: "Development server", status: "inactive", userCount: 0, activeUsers: {} },
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+          setResponse(mockData[i]);
+          i = (i + 1) % mockData.length;
+          setLoading(false);
+        }, 2000); // Update every 2 seconds
+        return () => clearInterval(interval);
+      } else {
+        const docRef = doc(firestore, "status", "server-status");
+        const unsubscribe = onSnapshot(docRef, (doc) => {
+          if (doc.exists()) {
+            setResponse(doc.data() as StatusData);
+          } else {
+            setError(new Error("Status document not found."));
+          }
+          setLoading(false);
+        }, (err) => {
+          setError(err);
+          setLoading(false);
+        });
+        return () => unsubscribe();
       }
     }
-  }, [user, functions]);
+  }, [user]);
 
   useEffect(() => {
     onStatusChange(response.status === 'active');
   }, [response.status, onStatusChange]);
-
-  const handleButtonClick = () => {
-    setResponse((prevResponse) => {
-        const newStatus = prevResponse.status === 'active' ? 'inactive' : 'active';
-        return {
-            ...prevResponse,
-            status: newStatus,
-        }
-    });
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const isGreen = response.status === 'active';
   const buttonClassName = isGreen ? 'status-button-on' : 'status-button-off';
@@ -57,7 +71,7 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
   return (
     <div className="status-container">
         <div className="status-header">
-            <div className={`status-button-wrapper ${buttonClassName}`} onClick={handleButtonClick}>
+            <div className={`status-button-wrapper ${buttonClassName}`}>
                 <img src={button} className="status-button" alt="status button" />
             </div>
         </div>
@@ -69,11 +83,11 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
             ) : (
                 <>
                     <p className="status-text">
-                        {response.status}. {response.usersConnected} users connected.
+                        {response.name}: {response.status} ({response.userCount} users).
                     </p>
                     <ul className="user-list">
-                        {response.users.map((user: any) => (
-                            <li key={user.name}>{user.name}</li>
+                        {Object.entries(response.activeUsers).map(([uid, displayName]) => (
+                            <li key={uid}>{displayName}</li>
                         ))}
                     </ul>
                 </>
