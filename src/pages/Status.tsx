@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../firebase";
 import button from '../assets/button.svg';
 import './Status.css';
+import { logError } from "../logger";
 
 interface StatusProps {
   onStatusChange: (isGreen: boolean) => void;
@@ -51,11 +52,14 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
           if (doc.exists()) {
             setResponse(doc.data() as StatusData);
           } else {
-            setError(new Error("Status document not found."));
+            const err = new Error("Status document not found");
+            logError(err, { path: docRef.path });
+            setError(new Error("Status not available."));
           }
           setLoading(false);
         }, (err) => {
-          setError(err);
+          logError(err);
+          setError(new Error("Status not available."));
           setLoading(false);
         });
         return () => unsubscribe();
