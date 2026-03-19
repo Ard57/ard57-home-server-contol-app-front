@@ -44,7 +44,9 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
         }, 2000); // Update every 2 seconds
         return () => clearInterval(interval);
       } else {
-        const docRef = doc(firestore, "status", "server-status");
+        const collectionName = import.meta.env.VITE_FIRESTORE_COLLECTION_NAME;
+        const documentId = import.meta.env.VITE_HOME_SERVER_ID;
+        const docRef = doc(firestore, collectionName, documentId);
         const unsubscribe = onSnapshot(docRef, (doc) => {
           if (doc.exists()) {
             setResponse(doc.data() as StatusData);
