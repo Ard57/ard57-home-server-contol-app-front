@@ -27,6 +27,7 @@ dist-ssr
 .firebaserc
 firebase-debug.log
 *.firebase.env
+.firebase/
 
 blueprint.md
 
