@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { useAuth } from "./auth/useAuth";
+import Status from "./pages/Status";
+import Auth from "./components/Auth";
+import Sun from './components/Sun';
+import Background from './components/Background';
+import { FunctionsProvider } from './functions/useFunctions';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, loading } = useAuth();
+  const [isRisen, setIsRisen] = useState(true);
+
+  if (loading) {
+    return (
+        <div className="app-container">
+            <div className="loading-container">
+                <h2>Loading...</h2>
+            </div>
+        </div>
+    )
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="app-container">
+        <Background isRisen={isRisen} />
+        <Sun isRisen={isRisen} />
+        <header className="app-header">
+            <Auth />
+        </header>
+        <main className="content-wrapper">
+            {user ? (
+              <FunctionsProvider>
+                <Status onStatusChange={setIsRisen} />
+              </FunctionsProvider>
+            ) : (
+            <div className="login-prompt">
+                <h2>Please sign in to continue</h2>
+            </div>
+            )}
+        </main>
+    </div>
   )
 }
 
-export default App
+export default App;

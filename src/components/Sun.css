@@ -1,0 +1,12 @@
+.sun {
+  position: absolute;
+  z-index: 1; /* Above the background */
+  will-change: transform;
+}
+
+.land-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    z-index: 2; /* Above the sun */
+}

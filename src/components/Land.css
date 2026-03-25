@@ -1,0 +1,14 @@
+.land-container {
+    position: absolute;
+    bottom: 0px; /* Moves the land down by 50px */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; 
+}
+
+.land-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+}

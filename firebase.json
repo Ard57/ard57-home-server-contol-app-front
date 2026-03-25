@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -12,5 +12,12 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "firestore": {
+    "database": "homeservercontrolappdb",
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions"
   }
 }
