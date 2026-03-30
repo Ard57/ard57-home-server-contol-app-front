@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuth } from "./auth/useAuth";
 import Status from "./pages/Status";
 import Auth from "./components/Auth";
-import Sun from './components/Sun';
 import { FunctionsProvider } from './functions/useFunctions';
 import './App.css';
 
@@ -22,7 +21,6 @@ function App() {
 
   return (
     <div className="app-container">
-                <Sun isRisen={isRisen} />
         <header className="app-header">
             <Auth />
         </header>
