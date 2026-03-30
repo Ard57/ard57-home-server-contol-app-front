@@ -4,6 +4,7 @@ import Status from "./pages/Status";
 import Auth from "./components/Auth";
 import { FunctionsProvider } from './functions/useFunctions';
 import './App.css';
+import { BrowserRouter } from "react-router-dom";
 
 function App() {
   const { user, loading } = useAuth();
@@ -20,6 +21,7 @@ function App() {
   }
 
   return (
+    <BrowserRouter>
     <div className="app-container">
         <header className="app-header">
             <Auth />
@@ -36,6 +38,7 @@ function App() {
             )}
         </main>
     </div>
+    </BrowserRouter>
   )
 }
 
