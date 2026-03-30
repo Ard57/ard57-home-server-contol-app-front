@@ -3,7 +3,6 @@ import { useAuth } from "./auth/useAuth";
 import Status from "./pages/Status";
 import Auth from "./components/Auth";
 import Sun from './components/Sun';
-import Background from './components/Background';
 import { FunctionsProvider } from './functions/useFunctions';
 import './App.css';
 
@@ -23,8 +22,7 @@ function App() {
 
   return (
     <div className="app-container">
-        <Background isRisen={isRisen} />
-        <Sun isRisen={isRisen} />
+                <Sun isRisen={isRisen} />
         <header className="app-header">
             <Auth />
         </header>
