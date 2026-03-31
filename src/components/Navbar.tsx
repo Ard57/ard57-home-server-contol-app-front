@@ -1,6 +1,5 @@
-import React from "react";
-import { useAuth } from "../auth/useAuth";
 import TerminalIcon from '@mui/icons-material/Terminal';
+import Auth from './Auth';
 
 export default function NavBar() {
   // const { user, loading, signIn, signOut } = useAuth();
@@ -13,6 +12,7 @@ export default function NavBar() {
           <span>Home Server Control Panel</span>
         </div>
         <div className="flex items-center gap-4">
+          <Auth />
         </div>
       </div>
     </header>
