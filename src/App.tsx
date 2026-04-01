@@ -3,7 +3,6 @@ import { useAuth } from "./auth/useAuth";
 import Status from "./pages/Status";
 import NavBar from "./components/Navbar";
 import { FunctionsProvider } from './functions/useFunctions';
-import './App.css';
 import { BrowserRouter } from "react-router-dom";
 
 function App() {
