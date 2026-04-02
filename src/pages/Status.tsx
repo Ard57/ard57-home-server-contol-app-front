@@ -4,7 +4,6 @@ import { useAuth } from "../auth/useAuth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../firebase";
 import button from '../assets/button.svg';
-import './Status.css';
 import { logError } from "../logger";
 
 interface StatusProps {
@@ -72,26 +71,26 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
   }, [response.status, onStatusChange]);
 
   const isGreen = response.status === 'active';
-  const buttonClassName = isGreen ? 'status-button-on' : 'status-button-off';
+  const buttonClassName = isGreen ? 'drop-shadow-[0_0_1rem_#4caf50]' : 'grayscale drop-shadow-[0_0_0.5rem_#ccc]';
 
   return (
-    <div className="status-container">
-        <div className="status-header">
-            <div className={`status-button-wrapper ${buttonClassName}`}>
-                <img src={button} className="status-button" alt="status button" />
+    <div className="flex flex-col items-center justify-center h-full text-center font-roboto">
+        <div className="mb-8">
+            <div className={`cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 ${buttonClassName}`}>
+                <img src={button} className="w-[150px] h-[150px]" alt="status button" />
             </div>
         </div>
         <div className="status-body">
             {loading ? (
-                <p className="status-text">Loading...</p>
+                <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Loading...</p>
             ) : error ? (
-                <p className="status-text">Error: {error.message}</p>
+                <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Error: {error.message}</p>
             ) : (
                 <>
-                    <p className="status-text">
+                    <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">
                         {response.name}: {response.status} ({response.userCount} users).
                     </p>
-                    <ul className="user-list">
+                    <ul className="list-none p-0 mt-4 text-slate-600 text-base text-left">
                         {Object.entries(response.activeUsers).map(([uid, displayName]) => (
                             <li key={uid}>{displayName}</li>
                         ))}
