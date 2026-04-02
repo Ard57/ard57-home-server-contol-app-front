@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 
 function App() {
   const { user, loading } = useAuth();
-  const [isRisen, setIsRisen] = useState(true);
+  const [, setIsRisen] = useState(true);
 
   if (loading) {
     return (
