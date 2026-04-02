@@ -82,15 +82,15 @@ const Status: React.FC<StatusProps> = ({ onStatusChange }) => {
         </div>
         <div className="status-body">
             {loading ? (
-                <p className="text-white text-shadow-lg text-2xl font-light mt-4">Loading...</p>
+                <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Loading...</p>
             ) : error ? (
-                <p className="text-white text-shadow-lg text-2xl font-light mt-4">Error: {error.message}</p>
+                <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Error: {error.message}</p>
             ) : (
                 <>
-                    <p className="text-white text-shadow-lg text-2xl font-light mt-4">
+                    <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">
                         {response.name}: {response.status} ({response.userCount} users).
                     </p>
-                    <ul className="list-none p-0 mt-4 text-white text-base text-left">
+                    <ul className="list-none p-0 mt-4 text-slate-600 text-base text-left">
                         {Object.entries(response.activeUsers).map(([uid, displayName]) => (
                             <li key={uid}>{displayName}</li>
                         ))}

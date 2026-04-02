@@ -28,7 +28,7 @@ function App() {
             </FunctionsProvider>
           ) : (
             <div className="text-center">
-              <h2 className="text-2xl font-semibold text-slate-800">Please sign in to continue</h2>
+              <h2 className="text-2xl font-semibold text-slate-700">Please sign in to continue</h2>
               <p className="text-slate-600 mt-2">Use the buttons in the top right to sign in.</p>
             </div>
           )}
