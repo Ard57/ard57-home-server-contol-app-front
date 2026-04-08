@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "./auth/useAuth";
 import Status from "./pages/Status";
-import NavBar from "./components/Navbar";
+import NavBar from "./components/ui/Navbar";
 import { FunctionsProvider } from './functions/useFunctions';
 import { BrowserRouter } from "react-router-dom";
 
