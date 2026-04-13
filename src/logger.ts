@@ -2,7 +2,7 @@
 // A simple logger service for logging errors.
 
 interface LogInfo {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export const logError = (error: Error, info?: LogInfo) => {
