@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 
 function App() {
   const { user, loading } = useAuth();
-  const [, setIsRisen] = useState(true);
+  const [, setIsOnline] = useState(false);
 
   if (loading) {
     return (
@@ -17,6 +17,9 @@ function App() {
     )
   }
 
+  const collectionName = import.meta.env.VITE_FIRESTORE_COLLECTION_NAME || 'servers';
+  const documentId = import.meta.env.VITE_HOME_SERVER_ID || 'home';
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -24,7 +27,11 @@ function App() {
         <main className="max-w-5xl mx-auto px-4 py-8">
           {user ? (
             <FunctionsProvider>
-              <Status onStatusChange={setIsRisen} />
+              <Status 
+                onStatusChange={setIsOnline} 
+                collectionName={collectionName}
+                documentId={documentId}
+              />
             </FunctionsProvider>
           ) : (
             <div className="text-center">
