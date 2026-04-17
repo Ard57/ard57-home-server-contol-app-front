@@ -67,6 +67,9 @@ const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, docu
         <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">
             {serverData.name}: {serverData.status} ({serverData.userCount} users).
         </p>
+        <p className="text-slate-500 text-shadow-md text-lg font-light mt-2">
+            {serverData.desc}
+        </p>
         <ul className="list-none p-0 mt-4 text-slate-600 text-base text-left">
             {Object.entries(serverData.activeUsers).map(([uid, displayName]) => (
                 <li key={uid}>{displayName}</li>
