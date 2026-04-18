@@ -15,6 +15,7 @@ const functions = getFunctions(app, "europe-central2");
 
 const functionsApi = {
   connect: httpsCallable(functions, 'connect'),
+  disconnect: httpsCallable(functions, 'disconnect'),
   status2: async () => {
     if (import.meta.env.DEV) {
       console.log("mock: calling status2 function");
