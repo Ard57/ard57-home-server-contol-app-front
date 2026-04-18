@@ -1,10 +1,11 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { getFirestore } = require("firebase-admin/firestore");
 
 const DBNAME = functions.config().firestore.database;
 const SERVERS_COLLECTION = functions.config().firestore.collection || "servers";
 
-const db = DBNAME ? admin.firestore(DBNAME) : admin.firestore();
+const db = getFirestore(DBNAME);
 
 exports.connectFunction = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
