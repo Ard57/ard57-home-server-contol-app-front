@@ -46,10 +46,16 @@ exports.connectFunction = functions.https.onCall(async (data, context) => {
         userCount += 1;
         activeUsers[uid] = displayName;
 
-        transaction.update(serverRef, {
+        const updateData = {
           userCount,
           activeUsers,
-        });
+        };
+
+        if (serverData.status === "offline") {
+          updateData.status = "online";
+        }
+
+        transaction.update(serverRef, updateData);
       } else if (activeUsers[uid] !== displayName) {
         functions.logger.info(`Updating display name for ${uid} on ${serverId}.`);
         activeUsers[uid] = displayName;
