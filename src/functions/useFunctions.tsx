@@ -14,6 +14,7 @@ export interface StatusResponse {
 const functions = getFunctions(app, "europe-central2");
 
 const functionsApi = {
+  connect: httpsCallable(functions, 'connect'),
   status2: async () => {
     if (import.meta.env.DEV) {
       console.log("mock: calling status2 function");
