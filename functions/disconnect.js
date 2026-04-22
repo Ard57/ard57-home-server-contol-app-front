@@ -7,7 +7,7 @@ const SERVERS_COLLECTION = functions.config().firestore.collection || "servers";
 
 const db = getFirestore(DBNAME);
 
-exports.disconnectFunction = functions.https.onCall(async (data, context) => {
+exports.disconnectFunction = functions.region('europe-central2').https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
