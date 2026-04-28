@@ -1,5 +1,5 @@
 import TerminalIcon from '@mui/icons-material/Terminal';
-import Auth from './Auth';
+import Auth from '../Auth';
 
 export default function NavBar() {
   return (
