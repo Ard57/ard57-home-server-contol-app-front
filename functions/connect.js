@@ -2,8 +2,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 
-const DBNAME = functions.config().firestore.database;
-const SERVERS_COLLECTION = functions.config().firestore.collection || "servers";
+const DBNAME = process.env.FIRESTORE_DATABASE_NAME;
+const SERVERS_COLLECTION = process.env.FIRESTORE_SERVERS_COLLECTION;
 
 const db = getFirestore(DBNAME);
 
@@ -19,7 +19,7 @@ exports.connectFunction = functions.region('europe-central2').https.onCall(async
   if (!serverId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "The function must be called with a \'serverId\' argument."
+      "The function must be called with a 'serverId' argument."
     );
   }
 
@@ -34,7 +34,7 @@ exports.connectFunction = functions.region('europe-central2').https.onCall(async
       if (!serverDoc.exists) {
         throw new functions.https.HttpsError(
           "not-found",
-          `Server with ID ${serverId} not found in database ${DBNAME || '(default)'}.`
+          `Server with ID ${serverId} not found in database ${DBNAME}.`
         );
       }
 
