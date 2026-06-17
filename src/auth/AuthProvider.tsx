@@ -1,6 +1,12 @@
-
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider, signInAnonymously as firebaseSignInAnonymously, type User } from "firebase/auth";
+import {
+    onAuthStateChanged,
+    signInWithPopup,
+    signOut,
+    GoogleAuthProvider,
+    signInAnonymously as firebaseSignInAnonymously,
+    type User
+} from "firebase/auth";
 import { auth } from "../firebase";
 import { AuthContext } from "./AuthContext";
 
