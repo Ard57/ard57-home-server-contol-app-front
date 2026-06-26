@@ -15,7 +15,7 @@
     ]
   },
   "firestore": {
-    "database": "homeservercontrolappdb",
+    "database": "(default)",
     "rules": "firestore.rules"
   },
   "functions": {
