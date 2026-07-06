@@ -2,7 +2,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 
-const DBNAME = process.env.FIRESTORE_DATABASE_NAME;
+const DBNAME = process.env.FIRESTORE_DATABASE_NAME || '(default)';
 const SERVERS_COLLECTION = process.env.FIRESTORE_SERVERS_COLLECTION;
 
 const db = getFirestore(DBNAME);
