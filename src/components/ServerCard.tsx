@@ -22,7 +22,10 @@ interface ServerCardProps {
 const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, documentId, onDataChange }) => {
   const { user } = useAuth();
   const { connect, disconnect } = useFunctions();
-  const [serverData, setServerData] = useState<ServerData | null>(null);
+  
+  const [serverDocData, setServerDocData] = useState<Omit<ServerData, 'activeUsers'> | null>(null);
+  const [activeUsers, setActiveUsers] = useState<Record<string, string>>({});
+  
   const [loading, setLoading] = useState(!!user);
   const [error, setError] = useState<Error | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -32,27 +35,55 @@ const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, docu
       return;
     }
 
+    setLoading(true);
+
     const docRef = doc(firestore, collectionName, documentId);
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+    const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        const data = docSnap.data() as ServerData;
-        setServerData(data);
-        if (onDataChange) onDataChange(data);
+        const data = docSnap.data() as Omit<ServerData, 'activeUsers'>;
+        setServerDocData(data);
+        setError(null);
       } else {
-        setServerData(null);
+        setServerDocData(null);
         setError(new Error("Status document not found"));
-        if (onDataChange) onDataChange(null);
       }
       setLoading(false);
     }, (err) => {
-        console.error(err);
+        console.error("Error subscribing to main server document:", err);
         setError(new Error("Status not available."));
         setLoading(false);
-        if (onDataChange) onDataChange(null);
     });
 
-    return () => unsubscribe();
-  }, [firestore, collectionName, documentId, user, onDataChange]);
+    const stateRef = doc(firestore, collectionName, documentId, "details", "state");
+    const unsubscribeState = onSnapshot(stateRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setActiveUsers(data?.activeUsers || {});
+      } else {
+        setActiveUsers({});
+      }
+    }, (err) => {
+        console.error("Error subscribing to state subdocument:", err);
+    });
+
+    return () => {
+      unsubscribeDoc();
+      unsubscribeState();
+    };
+  }, [firestore, collectionName, documentId, user]);
+
+  useEffect(() => {
+    if (onDataChange) {
+      if (serverDocData) {
+        onDataChange({
+          ...serverDocData,
+          activeUsers
+        });
+      } else {
+        onDataChange(null);
+      }
+    }
+  }, [serverDocData, activeUsers, onDataChange]);
 
   const handleConnect = async () => {
     if (!user) return;
@@ -86,19 +117,19 @@ const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, docu
     return <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Error: {error.message}</p>;
   }
 
-  if (!serverData) {
+  if (!serverDocData) {
     return <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Server not found.</p>;
   }
 
-  const isUserConnected = user && serverData.activeUsers.hasOwnProperty(user.uid);
+  const isUserConnected = !!(user && activeUsers && user.uid in activeUsers);
 
   return (
     <>
         <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">
-            {serverData.name}: {serverData.status} ({serverData.userCount} users).
+            {serverDocData.name}: {serverDocData.status} ({serverDocData.userCount} users).
         </p>
         <p className="text-slate-500 text-shadow-md text-lg font-light mt-2">
-            {serverData.desc}
+            {serverDocData.desc}
         </p>
 
         <div className="mt-4">
@@ -114,7 +145,7 @@ const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, docu
         </div>
 
         <ul className="list-none p-0 mt-4 text-slate-600 text-base text-left">
-            {Object.entries(serverData.activeUsers).map(([uid, displayName]) => (
+            {Object.entries(activeUsers || {}).map(([uid, displayName]) => (
                 <li key={uid}>{displayName}</li>
             ))}
         </ul>
