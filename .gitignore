@@ -32,5 +32,6 @@ firebase-debug.log
 blueprint.md
 
 # Deployment
-.env
+.env*
 deploy.sh
+models.md

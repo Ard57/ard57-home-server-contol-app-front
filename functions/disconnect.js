@@ -2,8 +2,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 
-const DBNAME = functions.config().firestore.database;
-const SERVERS_COLLECTION = functions.config().firestore.collection || "servers";
+const DBNAME = process.env.FIRESTORE_DATABASE_NAME || '(default)';
+const SERVERS_COLLECTION = process.env.FIRESTORE_SERVERS_COLLECTION;
 
 const db = getFirestore(DBNAME);
 
@@ -24,35 +24,25 @@ exports.disconnectFunction = functions.region('europe-central2').https.onCall(as
   }
 
   const { uid } = context.auth;
-  const serverRef = db.collection(SERVERS_COLLECTION).doc(serverId);
+  const stateRef = db.collection(SERVERS_COLLECTION).doc(serverId).collection("details").doc("state");
 
   try {
     await db.runTransaction(async (transaction) => {
-      const serverDoc = await transaction.get(serverRef);
+      const stateDoc = await transaction.get(stateRef);
 
-      if (!serverDoc.exists) {
-        throw new functions.https.HttpsError("not-found", `Server with ID ${serverId} not found.`);
+      if (!stateDoc.exists) {
+        functions.logger.info(`State document for ${serverId} does not exist, nothing to disconnect.`);
+        return;
       }
 
-      const serverData = serverDoc.data();
-      const activeUsers = serverData.activeUsers || {};
-      let userCount = serverData.userCount || 0;
+      const stateData = stateDoc.data();
+      const activeUsers = stateData.activeUsers || {};
 
       if (activeUsers[uid]) {
         functions.logger.info(`User ${uid} disconnecting from ${serverId}`);
-        userCount -= 1;
         delete activeUsers[uid];
 
-        const updateData = {
-          userCount,
-          activeUsers,
-        };
-
-        if (userCount === 0) {
-          updateData.status = "offline";
-        }
-
-        transaction.update(serverRef, updateData);
+        transaction.update(stateRef, { activeUsers });
       } else {
         functions.logger.info(`User ${uid} is not connected to ${serverId}`);
       }

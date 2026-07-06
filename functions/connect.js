@@ -2,8 +2,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 
-const DBNAME = functions.config().firestore.database;
-const SERVERS_COLLECTION = functions.config().firestore.collection || "servers";
+const DBNAME = process.env.FIRESTORE_DATABASE_NAME || '(default)';
+const SERVERS_COLLECTION = process.env.FIRESTORE_SERVERS_COLLECTION;
 
 const db = getFirestore(DBNAME);
 
@@ -19,48 +19,38 @@ exports.connectFunction = functions.region('europe-central2').https.onCall(async
   if (!serverId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "The function must be called with a \'serverId\' argument."
+      "The function must be called with a 'serverId' argument."
     );
   }
 
   const { uid } = context.auth;
   const displayName = context.auth.token.name || "Anonymous";
-  const serverRef = db.collection(SERVERS_COLLECTION).doc(serverId);
+  const stateRef = db.collection(SERVERS_COLLECTION).doc(serverId).collection("details").doc("state");
 
   try {
     await db.runTransaction(async (transaction) => {
-      const serverDoc = await transaction.get(serverRef);
+      const stateDoc = await transaction.get(stateRef);
 
-      if (!serverDoc.exists) {
-        throw new functions.https.HttpsError(
-          "not-found",
-          `Server with ID ${serverId} not found in database ${DBNAME || '(default)'}.`
-        );
-      }
-
-      const serverData = serverDoc.data();
-      const activeUsers = serverData.activeUsers || {};
-      let userCount = serverData.userCount || 0;
+      const stateData = stateDoc.exists ? stateDoc.data() : {};
+      const activeUsers = stateData.activeUsers || {};
 
       if (!activeUsers[uid]) {
         functions.logger.info(`New user ${uid} connecting to ${serverId}`);
-        userCount += 1;
         activeUsers[uid] = displayName;
 
         const updateData = {
-          userCount,
           activeUsers,
         };
 
-        if (serverData.status === "offline") {
-          updateData.status = "online";
+        if (!stateDoc.exists) {
+            transaction.set(stateRef, updateData);
+        } else {
+            transaction.update(stateRef, updateData);
         }
-
-        transaction.update(serverRef, updateData);
       } else if (activeUsers[uid] !== displayName) {
         functions.logger.info(`Updating display name for ${uid} on ${serverId}.`);
         activeUsers[uid] = displayName;
-        transaction.update(serverRef, { activeUsers });
+        transaction.update(stateRef, { activeUsers });
       } else {
         functions.logger.info(`User ${uid} is already connected to ${serverId}`);
       }
