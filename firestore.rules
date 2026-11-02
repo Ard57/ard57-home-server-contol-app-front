@@ -6,10 +6,21 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Explicitly allow read-only access to documents in the 'servers' collection
+    // Allow users to read and update their own user profiles
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow anyone to read server details (public statuses)
     match /servers/{serverId} {
       allow read: if true;
       allow write: if false;
+
+      // Allow anyone to read nested server state documents (e.g. active users)
+      match /details/{detailId} {
+        allow read: if true;
+        allow write: if false;
+      }
     }
   }
 }
