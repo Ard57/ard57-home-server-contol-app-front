@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { firestore } from "../firebase";
+import { useAuth } from "../auth/useAuth";
 import ServerCard from "../components/ServerCard";
 
 interface StatusProps {
@@ -8,40 +9,65 @@ interface StatusProps {
   demoCollectionName: string;
 }
 
-const Status: React.FC<StatusProps> = ({ collectionName, demoCollectionName }) => {
-  const [serverIds, setServerIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+interface ServerIdsState {
+  ids: string[];
+  loading: boolean;
+  error: Error | null;
+}
+
+// Subscribes to a collection whose document ids are server ids
+const useServerIds = (path: string[] | null): ServerIdsState => {
+  const [result, setResult] = useState<{ pathKey: string; ids: string[]; error: Error | null } | null>(null);
+  const pathKey = path?.join("/");
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(firestore, demoCollectionName), (snap) => {
-      setServerIds(snap.docs.map(d => d.id));
-      setError(null);
-      setLoading(false);
+    if (!pathKey) {
+      return;
+    }
+
+    return onSnapshot(collection(firestore, pathKey), (snap) => {
+      setResult({ pathKey, ids: snap.docs.map(d => d.id), error: null });
     }, (err) => {
-      console.error("Error subscribing to demo servers:", err);
-      setError(new Error("Demo servers not available."));
-      setLoading(false);
+      console.error(`Error subscribing to ${pathKey}:`, err);
+      setResult({ pathKey, ids: [], error: new Error("Servers not available.") });
     });
+  }, [pathKey]);
 
-    return unsubscribe;
-  }, [demoCollectionName]);
+  if (!pathKey) {
+    return { ids: [], loading: false, error: null };
+  }
 
-  if (loading) {
+  if (result?.pathKey !== pathKey) {
+    return { ids: [], loading: true, error: null };
+  }
+
+  return { ids: result.ids, loading: false, error: result.error };
+};
+
+const Status: React.FC<StatusProps> = ({ collectionName, demoCollectionName }) => {
+  const { user } = useAuth();
+
+  const userServers = useServerIds(user ? ["users", user.uid, "servers"] : null);
+  const demoServers = useServerIds([demoCollectionName]);
+
+  if (userServers.loading || demoServers.loading) {
     return <p className="text-center text-slate-500">Loading servers...</p>;
   }
 
-  if (error) {
-    return <p className="text-center text-slate-500">Error: {error.message}</p>;
+  if (demoServers.error && userServers.ids.length === 0) {
+    return <p className="text-center text-slate-500">Error: {demoServers.error.message}</p>;
   }
 
-  if (serverIds.length === 0) {
-    return <p className="text-center text-slate-500">No demo servers available.</p>;
+  const userServerIds = userServers.ids;
+  const demoServerIds = demoServers.ids.filter(id => !userServerIds.includes(id));
+
+  if (userServerIds.length === 0 && demoServerIds.length === 0) {
+    return <p className="text-center text-slate-500">No servers available.</p>;
   }
 
-  return (
+  const renderGrid = (ids: string[]) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {serverIds.map(id => (
+      {ids.map(id => (
         <ServerCard
           key={id}
           firestore={firestore}
@@ -49,6 +75,26 @@ const Status: React.FC<StatusProps> = ({ collectionName, demoCollectionName }) =
           documentId={id}
         />
       ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-10">
+      {userServerIds.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold tracking-tight">My Servers</h2>
+          {renderGrid(userServerIds)}
+        </section>
+      )}
+
+      {demoServerIds.length > 0 && (
+        <section className="space-y-4">
+          {userServerIds.length > 0 && (
+            <h2 className="text-2xl font-bold tracking-tight">Demo Servers</h2>
+          )}
+          {renderGrid(demoServerIds)}
+        </section>
+      )}
     </div>
   );
 };
