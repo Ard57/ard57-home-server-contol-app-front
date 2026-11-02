@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useAuth } from "./auth/useAuth";
 import Status from "./pages/Status";
 import NavBar from "./components/ui/Navbar";
@@ -7,7 +6,6 @@ import { BrowserRouter } from "react-router-dom";
 
 function App() {
   const { user, loading } = useAuth();
-  const [, setIsOnline] = useState(false);
 
   if (loading) {
     return (
@@ -18,7 +16,7 @@ function App() {
   }
 
   const collectionName = import.meta.env.VITE_FIRESTORE_COLLECTION_NAME || 'servers';
-  const documentId = import.meta.env.VITE_HOME_SERVER_ID || 'home';
+  const demoCollectionName = import.meta.env.VITE_FIRESTORE_DEMO_COLLECTION_NAME || 'demo-servers';
 
   return (
     <BrowserRouter>
@@ -27,10 +25,9 @@ function App() {
         <main className="max-w-5xl mx-auto px-4 py-8">
           {user ? (
             <FunctionsProvider>
-              <Status 
-                onStatusChange={setIsOnline} 
+              <Status
                 collectionName={collectionName}
-                documentId={documentId}
+                demoCollectionName={demoCollectionName}
               />
             </FunctionsProvider>
           ) : (
