@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 import { firestore } from "../firebase";
 import { useAuth } from "../auth/useAuth";
 import ServerCard from "../components/ServerCard";
@@ -15,8 +15,8 @@ interface ServerIdsState {
   error: Error | null;
 }
 
-// Subscribes to a collection whose document ids are server ids
-const useServerIds = (path: string[] | null): ServerIdsState => {
+// Subscribes to server ids: document ids of a collection, or keys of a document's `servers` map
+const useServerIds = (path: string[] | null, source: "collection" | "userDoc"): ServerIdsState => {
   const [result, setResult] = useState<{ pathKey: string; ids: string[]; error: Error | null } | null>(null);
   const pathKey = path?.join("/");
 
@@ -25,13 +25,21 @@ const useServerIds = (path: string[] | null): ServerIdsState => {
       return;
     }
 
-    return onSnapshot(collection(firestore, pathKey), (snap) => {
-      setResult({ pathKey, ids: snap.docs.map(d => d.id), error: null });
-    }, (err) => {
+    const onError = (err: Error) => {
       console.error(`Error subscribing to ${pathKey}:`, err);
       setResult({ pathKey, ids: [], error: new Error("Servers not available.") });
-    });
-  }, [pathKey]);
+    };
+
+    if (source === "userDoc") {
+      return onSnapshot(doc(firestore, pathKey), (snap) => {
+        setResult({ pathKey, ids: Object.keys(snap.data()?.servers || {}), error: null });
+      }, onError);
+    }
+
+    return onSnapshot(collection(firestore, pathKey), (snap) => {
+      setResult({ pathKey, ids: snap.docs.map(d => d.id), error: null });
+    }, onError);
+  }, [pathKey, source]);
 
   if (!pathKey) {
     return { ids: [], loading: false, error: null };
@@ -47,8 +55,8 @@ const useServerIds = (path: string[] | null): ServerIdsState => {
 const Status: React.FC<StatusProps> = ({ collectionName, demoCollectionName }) => {
   const { user } = useAuth();
 
-  const userServers = useServerIds(user ? ["users", user.uid, "servers"] : null);
-  const demoServers = useServerIds([demoCollectionName]);
+  const userServers = useServerIds(user ? ["users", user.uid] : null, "userDoc");
+  const demoServers = useServerIds([demoCollectionName], "collection");
 
   if (userServers.loading || demoServers.loading) {
     return <p className="text-center text-slate-500">Loading servers...</p>;
