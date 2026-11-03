@@ -3,6 +3,10 @@ import { doc, onSnapshot, Firestore } from 'firebase/firestore';
 import { useAuth } from '../auth/useAuth';
 import { useFunctions } from '../functions/useFunctions';
 import { Button } from './ui/Button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/Card';
+import PeopleIcon from '@mui/icons-material/People';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 export interface ServerData {
     name: string;
@@ -109,47 +113,89 @@ const ServerCard: React.FC<ServerCardProps> = ({ firestore, collectionName, docu
     }
   };
 
+  const renderMessage = (message: string) => (
+    <Card className="bg-slate-50 border-dashed">
+      <CardContent className="flex items-center justify-center gap-3 py-12 text-slate-500">
+        {loading && <AutorenewIcon className="animate-spin" fontSize="small" />}
+        <span>{message}</span>
+      </CardContent>
+    </Card>
+  );
+
   if (loading) {
-    return <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Loading...</p>;
+    return renderMessage("Loading...");
   }
 
   if (error) {
-    return <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Error: {error.message}</p>;
+    return renderMessage(`Error: ${error.message}`);
   }
 
   if (!serverDocData) {
-    return <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">Server not found.</p>;
+    return renderMessage("Server not found.");
   }
 
   const isUserConnected = !!(user && activeUsers && user.uid in activeUsers);
+  const isOnline = serverDocData.status === 'online';
+  const userCount = serverDocData.userCount || 0;
+  const activeUserEntries = Object.entries(activeUsers || {});
 
   return (
-    <>
-        <p className="text-slate-700 text-shadow-lg text-2xl font-light mt-4">
-            {serverDocData.name}: {serverDocData.status} ({serverDocData.userCount} users).
-        </p>
-        <p className="text-slate-500 text-shadow-md text-lg font-light mt-2">
-            {serverDocData.desc}
-        </p>
-
-        <div className="mt-4">
-            {isUserConnected ? (
-                <Button onClick={handleDisconnect} disabled={isConnecting}>
-                    {isConnecting ? 'Disconnecting...' : 'Disconnect'}
-                </Button>
-            ) : (
-                <Button onClick={handleConnect} disabled={isConnecting}>
-                    {isConnecting ? 'Connecting...' : 'Connect'}
-                </Button>
-            )}
+    <Card className="overflow-hidden flex flex-col">
+      <div className={`h-2 w-full ${isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+      <CardHeader>
+        <div className="flex justify-between items-start gap-4">
+          <div>
+            <CardTitle>{serverDocData.name}</CardTitle>
+            <CardDescription className="mt-1">{serverDocData.desc || 'No description'}</CardDescription>
+          </div>
+          <div className={`px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${
+            isOnline ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'
+          }`}>
+            {isOnline ? 'Online' : 'Offline'}
+          </div>
         </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-sm text-slate-600">
+            <PeopleIcon fontSize="small" />
+            <span>{userCount} active connection{userCount !== 1 ? 's' : ''}</span>
+          </div>
 
-        <ul className="list-none p-0 mt-4 text-slate-600 text-base text-left">
-            {Object.entries(activeUsers || {}).map(([uid, displayName]) => (
-                <li key={uid}>{displayName}</li>
-            ))}
-        </ul>
-    </>
+          {activeUserEntries.length > 0 && (
+            <ul className="list-none p-0 space-y-1 text-sm text-slate-600">
+              {activeUserEntries.map(([uid, displayName]) => (
+                <li key={uid} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  {displayName}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter className="bg-slate-50 border-t border-slate-100 pt-6">
+        {isUserConnected ? (
+          <Button
+            className="w-full gap-2 bg-red-500 hover:bg-red-500/90 text-white"
+            onClick={handleDisconnect}
+            disabled={isConnecting}
+          >
+            {isConnecting ? <AutorenewIcon className="animate-spin" fontSize="small" /> : <PowerSettingsNewIcon fontSize="small" />}
+            Disconnect
+          </Button>
+        ) : (
+          <Button
+            className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={handleConnect}
+            disabled={isConnecting}
+          >
+            {isConnecting ? <AutorenewIcon className="animate-spin" fontSize="small" /> : <PowerSettingsNewIcon fontSize="small" />}
+            {isOnline ? 'Connect' : 'Connect & Power On'}
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 };
 
