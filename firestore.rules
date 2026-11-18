@@ -22,8 +22,9 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
 
-      // Allow anyone to read nested server state documents (e.g. active users)
-      match /details/{detailId} {
+      // Allow anyone to read the server state document (e.g. active users).
+      // Other details (e.g. the api config) are only readable by functions.
+      match /details/state {
         allow read: if true;
         allow write: if false;
       }
