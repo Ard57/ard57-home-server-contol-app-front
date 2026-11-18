@@ -3,6 +3,7 @@ const { defineString } = require('firebase-functions/params');
 const admin = require("firebase-admin");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getFunctions } = require("firebase-admin/functions");
+const { callServerApi } = require("./serverApi.js");
 
 const SERVERS_COLLECTION = defineString('FIRESTORE_SERVERS_COLLECTION', {default: 'servers'});
 const DATABASE_NAME = defineString('FIRESTORE_DATABASE_NAME', {default: '(default)'});
@@ -39,15 +40,28 @@ async (event) => {
         updateData.emptySince = emptySince;
     }
 
+    let powerOn = false;
     try {
         console.log(`Updating server ${serverId}: userCount=${userCount}`, updateData.status ? `status=${updateData.status}` : "");
 
-        await serverRef.update(updateData);
+        powerOn = await db.runTransaction(async (transaction) => {
+            const serverDoc = await transaction.get(serverRef);
+            transaction.update(serverRef, updateData);
+            return updateData.status === "online" && serverDoc.data()?.status !== "online";
+        });
 
         console.log(`Successfully synchronized server ${serverId}.`);
     } catch (error) {
         console.error(`Error synchronizing server document ${serverId}:`, error);
         return;
+    }
+
+    if (powerOn) {
+        try {
+            await callServerApi(serverRef, "power-on");
+        } catch (error) {
+            console.error(`Error powering on server ${serverId}:`, error);
+        }
     }
 
     if (emptySince === null) {
